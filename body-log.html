@@ -4,226 +4,283 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BODY LOG</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <style>
   :root {
-    --bg: #080C0A;
-    --card: #0F1510;
-    --card2: #131A14;
-    --border: #1E2820;
-    --accent: #6DB87A;
-    --accent2: #4A9A57;
-    --amber: #E8C547;
-    --red: #E86A47;
-    --text: #E8F0E9;
-    --sub: #6B7D6C;
-    --dim: #3A4A3B;
-    --ring-track: #1A2A1B;
-    --circ: 515;
+    --bg: #F2F2F7;
+    --card: #FFFFFF;
+    --text1: #000000;
+    --text2: #3C3C43;
+    --text3: #8E8E93;
+    --sep: #C6C6C8;
+    --c-weight: #AF52DE;
+    --c-steps: #FF9500;
+    --c-sys: #FF3B30;
+    --c-dia: #FF2D55;
+    --c-fat: #5856D6;
+    --c-goal: #34C759;
+    --c-blue: #007AFF;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--text); font-family:'Outfit',sans-serif; min-height:100vh; }
+  body { background:var(--bg); color:var(--text1); font-family:'Noto Sans JP', -apple-system, sans-serif; font-size:15px; }
 
-  /* LOADING */
   #loading { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; gap:16px; }
-  .spinner { width:44px; height:44px; border:3px solid var(--dim); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
+  .spinner { width:36px; height:36px; border:3px solid var(--sep); border-top-color:var(--c-blue); border-radius:50%; animation:spin 0.8s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
-  .loading-txt { font-size:14px; color:var(--sub); }
 
-  /* ERROR */
-  #error-screen { display:none; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; gap:12px; padding:20px; text-align:center; }
-  .err-title { font-size:20px; font-weight:700; color:var(--red); }
-  .err-msg { font-size:14px; color:var(--sub); line-height:1.7; max-width:480px; }
+  #error-screen { display:none; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; gap:12px; padding:24px; text-align:center; }
+  .err-title { font-size:20px; font-weight:700; color:var(--c-sys); }
+  .err-msg { font-size:14px; color:var(--text3); line-height:1.7; max-width:400px; }
 
-  /* DASHBOARD */
   #dashboard { display:none; }
-  header { display:flex; align-items:center; justify-content:space-between; padding:20px 32px; border-bottom:1px solid var(--border); position:sticky; top:0; background:rgba(8,12,10,0.92); backdrop-filter:blur(12px); z-index:10; }
-  .logo { font-size:18px; font-weight:900; letter-spacing:-0.5px; }
-  .logo span { color:var(--accent); }
-  .sync-info { font-size:12px; color:var(--sub); }
 
-  .main { padding:28px 32px; max-width:1400px; margin:0 auto; display:grid; gap:24px; }
+  header { background:var(--card); border-bottom:0.5px solid var(--sep); position:sticky; top:0; z-index:100; }
+  .header-inner { max-width:960px; margin:0 auto; height:52px; padding:0 16px; display:flex; align-items:center; justify-content:space-between; }
+  .app-title { font-size:17px; font-weight:700; }
+  .app-title span { color:var(--c-sys); }
+  .last-sync { font-size:12px; color:var(--text3); }
 
-  /* Top row */
-  .top-row { display:grid; grid-template-columns:300px 1fr; gap:24px; align-items:start; }
+  .main { max-width:960px; margin:0 auto; padding:20px 16px 48px; display:grid; gap:16px; }
 
-  /* Ring card */
-  .ring-card { background:var(--card); border:1px solid var(--border); border-radius:24px; padding:28px; display:flex; flex-direction:column; align-items:center; gap:18px; }
-  .ring-label { font-size:11px; letter-spacing:3px; color:var(--sub); text-transform:uppercase; }
-  .ring-wrap { position:relative; width:190px; height:190px; }
-  .ring-wrap svg { transform:rotate(-90deg); }
-  .ring-center { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; }
-  .ring-weight { font-size:40px; font-weight:900; letter-spacing:-2px; line-height:1; }
-  .ring-unit { font-size:13px; color:var(--sub); }
-  .ring-goal { font-size:11px; color:var(--sub); margin-top:4px; }
-  .ring-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; }
-  .rstat { background:var(--card2); border-radius:12px; padding:12px 14px; text-align:center; }
-  .rstat-val { font-size:20px; font-weight:700; }
-  .rstat-val.g { color:var(--accent); }
-  .rstat-val.a { color:var(--amber); }
-  .rstat-label { font-size:11px; color:var(--sub); margin-top:2px; }
-  .prog-wrap { grid-column:span 2; background:var(--card2); border-radius:12px; padding:12px 14px; }
-  .prog-bar-bg { height:5px; background:var(--ring-track); border-radius:4px; margin:8px 0 6px; overflow:hidden; }
-  .prog-bar { height:5px; background:linear-gradient(to right,var(--accent2),var(--accent)); border-radius:4px; transition:width 1.2s cubic-bezier(.4,0,.2,1); }
-  .prog-labels { display:flex; justify-content:space-between; font-size:10px; color:var(--sub); }
-  .prog-pct { text-align:center; font-size:13px; color:var(--accent); margin-top:4px; }
+  /* Summary */
+  .summary-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .sc { background:var(--card); border-radius:var(--radius); padding:14px 16px; box-shadow:var(--shadow); }
+  .sc-icon { font-size:20px; margin-bottom:8px; }
+  .sc-label { font-size:11px; color:var(--text3); font-weight:500; margin-bottom:3px; letter-spacing:0.2px; }
+  .sc-val { font-size:26px; font-weight:700; letter-spacing:-0.5px; line-height:1.1; }
+  .sc-unit { font-size:13px; font-weight:400; color:var(--text3); margin-left:2px; }
+  .sc-delta { font-size:12px; margin-top:5px; font-weight:500; }
+  .good { color:var(--c-goal); }
+  .bad { color:var(--c-sys); }
+  .neutral { color:var(--text3); }
 
-  /* Stat cards */
-  .stats-bar { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
-  .stat-card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:22px 24px; }
-  .stat-tag { font-size:11px; letter-spacing:2px; color:var(--sub); text-transform:uppercase; margin-bottom:6px; }
-  .stat-val { font-size:36px; font-weight:900; letter-spacing:-2px; line-height:1.1; }
-  .stat-unit { font-size:13px; color:var(--sub); font-weight:300; }
-  .stat-delta { font-size:13px; margin-top:8px; }
-  .stat-delta.good { color:var(--accent); }
-  .stat-delta.bad { color:var(--red); }
-  .stat-delta.neutral { color:var(--sub); }
+  /* Goal */
+  .goal-card { background:var(--card); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); display:grid; grid-template-columns:120px 1fr 1fr; gap:20px; align-items:center; }
+  .ring-wrap { display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .ring { position:relative; width:100px; height:100px; }
+  .ring svg { transform:rotate(-90deg); }
+  .ring-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .ring-val { font-size:22px; font-weight:700; letter-spacing:-1px; color:var(--c-weight); }
+  .ring-sub { font-size:10px; color:var(--text3); }
+  .ring-title { font-size:11px; color:var(--text3); }
+  .goal-nums { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .gn-label { font-size:11px; color:var(--text3); margin-bottom:2px; }
+  .gn-val { font-size:22px; font-weight:700; letter-spacing:-0.5px; }
+  .goal-prog { }
+  .gp-labels { display:flex; justify-content:space-between; font-size:11px; color:var(--text3); margin-bottom:5px; }
+  .gp-bg { height:6px; background:var(--bg); border-radius:3px; overflow:hidden; }
+  .gp-fill { height:6px; background:linear-gradient(90deg, var(--c-weight), var(--c-goal)); border-radius:3px; transition:width 1.2s ease; }
+  .gp-pct { font-size:13px; font-weight:600; color:var(--c-goal); margin-top:7px; text-align:center; }
 
-  /* Charts */
-  .chart-card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:26px; }
-  .chart-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; }
-  .chart-title { font-size:15px; font-weight:600; }
-  .chart-sub { font-size:12px; color:var(--sub); margin-top:2px; }
-  .pills { display:flex; gap:6px; }
-  .pill { font-size:11px; padding:4px 12px; border-radius:100px; border:1px solid var(--dim); color:var(--sub); cursor:pointer; background:none; font-family:'Outfit',sans-serif; transition:all 0.2s; }
-  .pill.active { border-color:var(--accent); color:var(--accent); background:rgba(109,184,122,0.08); }
-  .chart-wrap { position:relative; height:190px; }
-  .charts-row { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  /* Chart cards */
+  .cc { background:var(--card); border-radius:var(--radius); padding:16px 16px 12px; box-shadow:var(--shadow); }
+  .cc-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; gap:8px; }
+  .cc-title { font-size:15px; font-weight:700; }
+  .cc-sub { font-size:11px; color:var(--text3); margin-top:2px; }
+  .chart-box { position:relative; height:180px; }
+
+  /* Period tabs */
+  .ptabs { display:flex; background:rgba(118,118,128,0.12); border-radius:8px; padding:2px; }
+  .pt { border:none; background:none; font-family:inherit; font-size:11px; font-weight:500; color:var(--text3); padding:4px 7px; border-radius:6px; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+  .pt.on { background:var(--card); color:var(--text1); font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,0.15); }
+
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
 
   /* Table */
-  .history-card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:26px; overflow:hidden; }
-  .tbl-wrap { overflow-x:auto; margin-top:14px; }
-  table { width:100%; border-collapse:collapse; }
-  th { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--sub); font-weight:500; padding:0 14px 10px; text-align:left; border-bottom:1px solid var(--border); }
-  td { padding:12px 14px; font-size:14px; border-bottom:1px solid var(--border); }
+  .tbl-card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
+  .tbl-head { padding:16px; border-bottom:0.5px solid var(--bg); }
+  .tbl-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th { padding:9px 14px; font-size:11px; font-weight:500; color:var(--text3); border-bottom:0.5px solid var(--bg); text-align:left; white-space:nowrap; }
+  td { padding:11px 14px; border-bottom:0.5px solid var(--bg); }
   tr:last-child td { border-bottom:none; }
-  tr:hover td { background:rgba(255,255,255,0.02); }
-  .td-w { font-weight:700; font-size:16px; }
-  .td-d.down { color:var(--accent); }
-  .td-d.up { color:var(--red); }
-  .td-d.same { color:var(--sub); }
+  .fw7 { font-weight:700; }
+  .badge { display:inline-block; font-size:11px; padding:2px 8px; border-radius:10px; font-weight:500; }
+  .br { background:rgba(255,59,48,0.1); color:var(--c-sys); }
+  .bg { background:rgba(52,199,89,0.1); color:var(--c-goal); }
+  .bo { background:rgba(255,149,0,0.1); color:var(--c-steps); }
 
-  @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-  .anim { animation:fadeUp 0.5s ease forwards; opacity:0; }
-  .d1{animation-delay:.05s} .d2{animation-delay:.1s} .d3{animation-delay:.15s} .d4{animation-delay:.2s} .d5{animation-delay:.25s}
-
-  @media(max-width:900px){
-    .top-row{grid-template-columns:1fr}
-    .stats-bar{grid-template-columns:1fr 1fr}
-    .charts-row{grid-template-columns:1fr}
-    .main{padding:16px}
-    header{padding:16px 20px}
+  @media(max-width:768px) {
+    .summary-grid { grid-template-columns:1fr 1fr; }
+    .goal-card { grid-template-columns:1fr; text-align:center; }
+    .goal-nums { justify-items:center; }
+    .two-col { grid-template-columns:1fr; }
+    .ptabs { flex-wrap:wrap; }
   }
-  @media(max-width:500px){ .stats-bar{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
 
 <div id="loading">
   <div class="spinner"></div>
-  <div class="loading-txt">データを読み込んでいます...</div>
+  <p style="color:var(--text3);font-size:14px;">データを読み込んでいます...</p>
 </div>
 
 <div id="error-screen">
-  <div class="err-title">データの読み込みに失敗しました</div>
+  <div class="err-title">読み込みエラー</div>
   <div class="err-msg" id="err-msg"></div>
 </div>
 
 <div id="dashboard">
   <header>
-    <div class="logo">BODY<span>LOG</span></div>
-    <div class="sync-info" id="sync-info">読み込み中...</div>
+    <div class="header-inner">
+      <div class="app-title">BODY<span>LOG</span></div>
+      <div class="last-sync" id="sync-info"></div>
+    </div>
   </header>
+
   <div class="main">
 
-    <div class="top-row">
-      <!-- Ring -->
-      <div class="ring-card anim d1">
-        <div class="ring-label">目標達成度</div>
-        <div class="ring-wrap">
-          <svg width="190" height="190" viewBox="0 0 190 190">
-            <circle cx="95" cy="95" r="78" fill="none" stroke="var(--ring-track)" stroke-width="13"/>
-            <circle id="ring-arc" cx="95" cy="95" r="78" fill="none" stroke="var(--accent)" stroke-width="13"
-              stroke-linecap="round" stroke-dasharray="490" stroke-dashoffset="490"
-              style="transition:stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1)"/>
-          </svg>
-          <div class="ring-center">
-            <div class="ring-weight" id="ring-weight">—</div>
-            <div class="ring-unit">kg</div>
-            <div class="ring-goal">目標 90 kg</div>
-          </div>
-        </div>
-        <div class="ring-stats">
-          <div class="rstat"><div class="rstat-val g" id="lost-kg">—</div><div class="rstat-label">減量 (kg)</div></div>
-          <div class="rstat"><div class="rstat-val a" id="remain-kg">—</div><div class="rstat-label">残り (kg)</div></div>
-          <div class="prog-wrap">
-            <div class="prog-labels"><span>開始 138kg</span><span>目標 90kg</span></div>
-            <div class="prog-bar-bg"><div class="prog-bar" id="prog-bar" style="width:0%"></div></div>
-            <div class="prog-pct" id="prog-pct">—</div>
-          </div>
-        </div>
+    <!-- Summary -->
+    <div class="summary-grid">
+      <div class="sc">
+        <div class="sc-icon">⚖️</div>
+        <div class="sc-label">体重</div>
+        <div><span class="sc-val" id="sw" style="color:var(--c-weight)">—</span><span class="sc-unit">kg</span></div>
+        <div class="sc-delta" id="swd">—</div>
       </div>
-
-      <!-- Stats -->
-      <div class="stats-bar">
-        <div class="stat-card anim d2">
-          <div class="stat-tag">最新体重</div>
-          <div class="stat-val" id="s-weight">—</div>
-          <div class="stat-unit">kg</div>
-          <div class="stat-delta" id="s-weight-d">—</div>
+      <div class="sc">
+        <div class="sc-icon">🚶</div>
+        <div class="sc-label">歩数（直近）</div>
+        <div><span class="sc-val" id="ss" style="color:var(--c-steps);font-size:22px;">—</span><span class="sc-unit">歩</span></div>
+        <div class="sc-delta" id="ssd">—</div>
+      </div>
+      <div class="sc">
+        <div class="sc-icon">❤️</div>
+        <div class="sc-label">血圧（最新）</div>
+        <div style="display:flex;align-items:baseline;gap:2px;flex-wrap:wrap;">
+          <span class="sc-val" id="ssys" style="color:var(--c-sys);font-size:20px;">—</span>
+          <span class="sc-unit">/</span>
+          <span class="sc-val" id="sdia" style="color:var(--c-dia);font-size:20px;">—</span>
+          <span class="sc-unit">mmHg</span>
         </div>
-        <div class="stat-card anim d3">
-          <div class="stat-tag">歩数（直近）</div>
-          <div class="stat-val" style="font-size:28px;" id="s-steps">—</div>
-          <div class="stat-unit">歩</div>
-          <div class="stat-delta" id="s-steps-d">—</div>
-        </div>
-        <div class="stat-card anim d4">
-          <div class="stat-tag">血圧（最新）</div>
-          <div style="display:flex;align-items:baseline;gap:4px;margin-top:4px;">
-            <div class="stat-val" style="font-size:28px;" id="s-sys">—</div>
-            <div class="stat-unit">/</div>
-            <div class="stat-val" style="font-size:24px;" id="s-dia">—</div>
-          </div>
-          <div class="stat-unit">mmHg</div>
-          <div class="stat-delta" id="s-bp-comment">—</div>
-        </div>
+        <div class="sc-delta" id="sbpd">—</div>
+      </div>
+      <div class="sc">
+        <div class="sc-icon">📊</div>
+        <div class="sc-label">体脂肪率</div>
+        <div><span class="sc-val" id="sf" style="color:var(--c-fat)">—</span><span class="sc-unit">%</span></div>
+        <div class="sc-delta" id="sfd">—</div>
       </div>
     </div>
 
-    <!-- Weight chart -->
-    <div class="chart-card anim d3">
-      <div class="chart-head">
-        <div><div class="chart-title">体重の推移</div><div class="chart-sub">目標ライン 90kg</div></div>
-        <div class="pills" id="weight-pills">
-          <button class="pill active" data-d="30">30日</button>
-          <button class="pill" data-d="90">3ヶ月</button>
-          <button class="pill" data-d="180">6ヶ月</button>
-          <button class="pill" data-d="0">全期間</button>
+    <!-- Goal -->
+    <div class="goal-card">
+      <div class="ring-wrap">
+        <div class="ring">
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#F2F2F7" stroke-width="8"/>
+            <circle id="garc" cx="50" cy="50" r="42" fill="none" stroke="url(#ggrad)" stroke-width="8"
+              stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264"
+              style="transition:stroke-dashoffset 1.2s ease"/>
+            <defs>
+              <linearGradient id="ggrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#AF52DE"/>
+                <stop offset="100%" stop-color="#34C759"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="ring-center">
+            <div class="ring-val" id="gw">—</div>
+            <div class="ring-sub">kg</div>
+          </div>
+        </div>
+        <div class="ring-title">目標：90 kg</div>
+      </div>
+      <div class="goal-nums">
+        <div>
+          <div class="gn-label">減量</div>
+          <div class="gn-val good" id="glost">—</div>
+          <div style="font-size:11px;color:var(--text3)">kg</div>
+        </div>
+        <div>
+          <div class="gn-label">残り</div>
+          <div class="gn-val" style="color:var(--c-weight)" id="gremain">—</div>
+          <div style="font-size:11px;color:var(--text3)">kg</div>
         </div>
       </div>
-      <div class="chart-wrap"><canvas id="weightChart"></canvas></div>
+      <div class="goal-prog">
+        <div class="gp-labels"><span>開始 138kg</span><span>目標 90kg</span></div>
+        <div class="gp-bg"><div class="gp-fill" id="gbar" style="width:0%"></div></div>
+        <div class="gp-pct" id="gpct">—</div>
+      </div>
+    </div>
+
+    <!-- Weight -->
+    <div class="cc">
+      <div class="cc-head">
+        <div><div class="cc-title">体重</div><div class="cc-sub">目標ライン 90kg</div></div>
+        <div class="ptabs" id="wt">
+          <button class="pt" data-d="7">1週</button>
+          <button class="pt on" data-d="30">1ヶ月</button>
+          <button class="pt" data-d="90">3ヶ月</button>
+          <button class="pt" data-d="180">半年</button>
+          <button class="pt" data-d="365">1年</button>
+          <button class="pt" data-d="0">全期間</button>
+        </div>
+      </div>
+      <div class="chart-box"><canvas id="wc"></canvas></div>
     </div>
 
     <!-- Steps + BP -->
-    <div class="charts-row">
-      <div class="chart-card anim d4">
-        <div class="chart-head"><div><div class="chart-title">歩数</div><div class="chart-sub">直近30日</div></div></div>
-        <div class="chart-wrap"><canvas id="stepsChart"></canvas></div>
+    <div class="two-col">
+      <div class="cc">
+        <div class="cc-head">
+          <div><div class="cc-title">歩数</div></div>
+          <div class="ptabs" id="st">
+            <button class="pt" data-d="7">1週</button>
+            <button class="pt on" data-d="30">1ヶ月</button>
+            <button class="pt" data-d="90">3ヶ月</button>
+            <button class="pt" data-d="180">半年</button>
+            <button class="pt" data-d="0">全期間</button>
+          </div>
+        </div>
+        <div class="chart-box"><canvas id="sc2"></canvas></div>
       </div>
-      <div class="chart-card anim d4">
-        <div class="chart-head"><div><div class="chart-title">血圧の推移</div><div class="chart-sub">最高 / 最低</div></div></div>
-        <div class="chart-wrap"><canvas id="bpChart"></canvas></div>
+      <div class="cc">
+        <div class="cc-head">
+          <div><div class="cc-title">血圧</div><div class="cc-sub">測定範囲（最高 / 最低）</div></div>
+          <div class="ptabs" id="bt">
+            <button class="pt" data-d="7">1週</button>
+            <button class="pt on" data-d="30">1ヶ月</button>
+            <button class="pt" data-d="90">3ヶ月</button>
+            <button class="pt" data-d="180">半年</button>
+            <button class="pt" data-d="0">全期間</button>
+          </div>
+        </div>
+        <div class="chart-box"><canvas id="bc"></canvas></div>
       </div>
     </div>
 
+    <!-- Body fat -->
+    <div class="cc">
+      <div class="cc-head">
+        <div><div class="cc-title">体脂肪率</div></div>
+        <div class="ptabs" id="ft">
+          <button class="pt" data-d="7">1週</button>
+          <button class="pt on" data-d="30">1ヶ月</button>
+          <button class="pt" data-d="90">3ヶ月</button>
+          <button class="pt" data-d="180">半年</button>
+          <button class="pt" data-d="365">1年</button>
+          <button class="pt" data-d="0">全期間</button>
+        </div>
+      </div>
+      <div class="chart-box"><canvas id="fc"></canvas></div>
+    </div>
+
     <!-- History -->
-    <div class="history-card anim d5">
-      <div class="chart-head"><div><div class="chart-title">記録履歴（直近50件）</div></div></div>
+    <div class="tbl-card">
+      <div class="tbl-head"><div class="cc-title">記録履歴（直近50件）</div></div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>日付</th><th>体重 (kg)</th><th>前日比</th><th>歩数</th><th>血圧</th></tr></thead>
+          <thead><tr>
+            <th>日付</th><th>体重</th><th>前日比</th>
+            <th>歩数</th><th>最高血圧</th><th>最低血圧</th><th>体脂肪率</th>
+          </tr></thead>
           <tbody id="tbody"></tbody>
         </table>
       </div>
@@ -233,200 +290,235 @@
 </div>
 
 <script>
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxD77c6R38hE7ViqwD_DTnW7zQYbqx9ANmIrUAGOSMONyDcduI1cnnt9Lu6JB-QEiC0fQ/exec';
-const START_W = 138, GOAL_W = 90, CIRC = 490;
+const GAS = 'https://script.google.com/macros/s/AKfycbxD77c6R38hE7ViqwD_DTnW7zQYbqx9ANmIrUAGOSMONyDcduI1cnnt9Lu6JB-QEiC0fQ/exec';
+const S_W = 138, G_W = 90;
+let D = [], C = {};
 
-Chart.defaults.color = '#6B7D6C';
-Chart.defaults.font.family = 'Outfit';
+Chart.defaults.font.family = "'Noto Sans JP', -apple-system, sans-serif";
+Chart.defaults.color = '#8E8E93';
 
-let allData = [];
-let wChart, sChart, bChart;
+const tx = {
+  type: 'time',
+  time: { tooltipFormat:'yyyy/MM/dd', displayFormats:{ day:'M/d', week:'M/d', month:'M月' } },
+  grid: { display:false },
+  ticks: { maxTicksLimit:7, font:{size:11} }
+};
+const ty = { grid:{color:'rgba(0,0,0,0.04)'}, ticks:{font:{size:11}} };
+const baseOpts = {
+  responsive:true, maintainAspectRatio:false,
+  plugins:{ legend:{display:false} },
+  scales:{ x:tx, y:ty }
+};
 
-async function loadData() {
+async function init() {
   try {
-    const res = await fetch(GAS_URL);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    if (!Array.isArray(data)) throw new Error('データ形式が正しくありません');
-    allData = data.filter(d => d.date);
-    if (allData.length === 0) throw new Error('データがまだありません。Health Auto Exportのエクスポートを確認してください。');
-    renderDashboard();
+    const r = await fetch(GAS);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    D = (await r.json()).filter(d => d.date);
+    if (!D.length) throw new Error('データがまだありません。Health Auto Exportでエクスポートしてください。');
+    go();
   } catch(e) {
     document.getElementById('loading').style.display = 'none';
-    const es = document.getElementById('error-screen');
-    es.style.display = 'flex';
+    document.getElementById('error-screen').style.display = 'flex';
     document.getElementById('err-msg').textContent = e.message;
   }
 }
 
-function filterDays(arr, days) {
+function cut(arr, days) {
   if (!days) return arr;
-  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
-  const cut = cutoff.toISOString().slice(0,10);
-  return arr.filter(d => d.date >= cut);
+  const c = new Date(); c.setDate(c.getDate()-days);
+  const cs = c.toISOString().slice(0,10);
+  return arr.filter(d => d.date >= cs);
 }
+const dt = s => new Date(s + 'T00:00:00');
 
-function fmt(day) {
-  const d = new Date(day + 'T00:00:00');
-  return `${d.getMonth()+1}/${d.getDate()}`;
-}
-
-function renderDashboard() {
+function go() {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
 
-  const wData = allData.filter(d => d.weight != null);
-  const sData = allData.filter(d => d.steps != null);
-  const bData = allData.filter(d => d.bp_sys != null && d.bp_dia != null);
+  const wD = D.filter(d => d.weight != null);
+  const sD = D.filter(d => d.steps != null);
+  const bD = D.filter(d => d.bp_sys_max != null);
+  const fD = D.filter(d => d.body_fat != null);
 
-  const latest = wData[wData.length - 1];
-  const prev   = wData[wData.length - 2];
-  const curW   = latest ? parseFloat(latest.weight) : 0;
-  const startW = wData[0] ? parseFloat(wData[0].weight) : START_W;
-  const lost   = (startW - curW).toFixed(1);
-  const remain = Math.max(curW - GOAL_W, 0).toFixed(1);
-  const pct    = Math.min(((startW - curW) / (START_W - GOAL_W)) * 100, 100);
+  // Weight summary
+  const lw = wD[wD.length-1], pw = wD[wD.length-2];
+  const cw = lw ? +lw.weight : 0;
+  document.getElementById('gw').textContent = cw.toFixed(1);
+  document.getElementById('sw').textContent = cw.toFixed(1);
+  if (pw) {
+    const d = (cw - +pw.weight).toFixed(1);
+    const el = document.getElementById('swd');
+    el.textContent = d<0 ? `前回比 ${d} kg` : d>0 ? `前回比 +${d} kg` : '前回と同じ';
+    el.className = 'sc-delta ' + (d<0?'good':d>0?'bad':'neutral');
+  }
 
-  // Ring
-  document.getElementById('ring-weight').textContent = curW.toFixed(1);
-  document.getElementById('lost-kg').textContent = lost >= 0 ? `▼${lost}` : `▲${Math.abs(lost)}`;
-  document.getElementById('remain-kg').textContent = remain;
-  document.getElementById('prog-pct').textContent = `達成率 ${pct.toFixed(1)}%`;
+  // Goal ring
+  const sw0 = wD[0] ? +wD[0].weight : S_W;
+  const lost = Math.max(sw0-cw,0).toFixed(1);
+  const rem = Math.max(cw-G_W,0).toFixed(1);
+  const pct = Math.min(((sw0-cw)/(S_W-G_W))*100, 100);
+  document.getElementById('glost').textContent = lost;
+  document.getElementById('gremain').textContent = rem;
+  document.getElementById('gpct').textContent = `達成率 ${pct.toFixed(1)}%`;
   setTimeout(() => {
-    document.getElementById('ring-arc').style.strokeDashoffset = CIRC * (1 - pct/100);
-    document.getElementById('prog-bar').style.width = pct.toFixed(1) + '%';
+    document.getElementById('garc').style.strokeDashoffset = 264*(1-pct/100);
+    document.getElementById('gbar').style.width = pct.toFixed(1)+'%';
   }, 100);
 
-  // Stat: weight
-  document.getElementById('s-weight').textContent = curW.toFixed(1);
-  if (prev) {
-    const diff = (curW - parseFloat(prev.weight)).toFixed(1);
-    const el = document.getElementById('s-weight-d');
-    el.textContent = diff < 0 ? `前回比 ${diff} kg` : diff > 0 ? `前回比 +${diff} kg` : '前回と同じ';
-    el.className = 'stat-delta ' + (diff < 0 ? 'good' : diff > 0 ? 'bad' : 'neutral');
+  // Steps summary
+  const ls = sD[sD.length-1], ps = sD[sD.length-2];
+  if (ls) {
+    document.getElementById('ss').textContent = Math.round(ls.steps).toLocaleString();
+    if (ps) {
+      const d = Math.round(ls.steps - ps.steps);
+      const el = document.getElementById('ssd');
+      el.textContent = `前日比 ${d>=0?'+':''}${d.toLocaleString()} 歩`;
+      el.className = 'sc-delta ' + (d>=0?'good':'bad');
+    }
   }
 
-  // Stat: steps
-  const ls = sData[sData.length-1];
-  const ps = sData[sData.length-2];
-  document.getElementById('s-steps').textContent = ls ? Math.round(ls.steps).toLocaleString() : '—';
-  if (ls && ps) {
-    const d = Math.round(ls.steps - ps.steps);
-    const el = document.getElementById('s-steps-d');
-    el.textContent = `前日比 ${d>=0?'+':''}${d.toLocaleString()} 歩`;
-    el.className = 'stat-delta ' + (d >= 0 ? 'good' : 'bad');
-  }
-
-  // Stat: BP
-  const lb = bData[bData.length-1];
+  // BP summary
+  const lb = bD[bD.length-1];
   if (lb) {
-    document.getElementById('s-sys').textContent = lb.bp_sys ?? '—';
-    document.getElementById('s-dia').textContent = lb.bp_dia ?? '—';
-    const el = document.getElementById('s-bp-comment');
-    const sys = lb.bp_sys;
-    if (sys >= 140) { el.textContent = '⚠ 高血圧域'; el.className = 'stat-delta bad'; }
-    else if (sys >= 130) { el.textContent = '注意 高値血圧'; el.className = 'stat-delta neutral'; }
-    else { el.textContent = '✓ 正常域'; el.className = 'stat-delta good'; }
+    const sf = v => lb['bp_sys_min']===lb['bp_sys_max'] ? `${lb.bp_sys_max}` : `${lb.bp_sys_min}–${lb.bp_sys_max}`;
+    const df = v => lb['bp_dia_min']===lb['bp_dia_max'] ? `${lb.bp_dia_max}` : `${lb.bp_dia_min}–${lb.bp_dia_max}`;
+    document.getElementById('ssys').textContent = sf();
+    document.getElementById('sdia').textContent = df();
+    const el = document.getElementById('sbpd');
+    const sys = lb.bp_sys_max;
+    el.innerHTML = sys>=140 ? '<span class="badge br">高血圧域</span>' : sys>=130 ? '<span class="badge bo">高値血圧</span>' : '<span class="badge bg">正常域</span>';
   }
 
-  // Sync info
-  const last = allData[allData.length-1];
-  document.getElementById('sync-info').textContent = `最終データ: ${last?.date ?? '—'}`;
+  // Fat summary
+  const lf = fD[fD.length-1], pf = fD[fD.length-2];
+  if (lf) {
+    document.getElementById('sf').textContent = (+lf.body_fat).toFixed(1);
+    if (pf) {
+      const d = (+lf.body_fat - +pf.body_fat).toFixed(1);
+      const el = document.getElementById('sfd');
+      el.textContent = d<0 ? `前回比 ${d}%` : d>0 ? `前回比 +${d}%` : '前回と同じ';
+      el.className = 'sc-delta '+(d<0?'good':d>0?'bad':'neutral');
+    }
+  }
 
-  // Charts
-  renderWeightChart(30);
-  renderStepsChart();
-  renderBpChart();
-  renderTable();
+  document.getElementById('sync-info').textContent = `最終データ: ${D[D.length-1]?.date}`;
 
-  // Period pills
-  document.getElementById('weight-pills').querySelectorAll('.pill').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#weight-pills .pill').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderWeightChart(parseInt(btn.dataset.d));
+  dW(30); dS(30); dB(30); dF(30); dTable();
+  tabs('wt', dW); tabs('st', dS); tabs('bt', dB); tabs('ft', dF);
+}
+
+function tabs(id, fn) {
+  document.getElementById(id).querySelectorAll('.pt').forEach(b => {
+    b.addEventListener('click', () => {
+      document.getElementById(id).querySelectorAll('.pt').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      fn(+b.dataset.d);
     });
   });
 }
 
-function renderWeightChart(days) {
-  const data = filterDays(allData.filter(d=>d.weight!=null), days);
-  const labels = data.map(d => fmt(d.date));
-  const vals = data.map(d => parseFloat(d.weight));
-  if (wChart) wChart.destroy();
-  wChart = new Chart(document.getElementById('weightChart'), {
-    type: 'line',
-    data: { labels, datasets: [
-      { label:'体重', data:vals, borderColor:'#6DB87A', backgroundColor:'rgba(109,184,122,0.07)', borderWidth:2, pointRadius:data.length>60?0:3, tension:0.4, fill:true },
-      { label:'目標90kg', data:Array(labels.length).fill(GOAL_W), borderColor:'rgba(232,197,71,0.4)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false }
+function dW(days) {
+  const d = cut(D.filter(x=>x.weight!=null), days);
+  const pts = d.map(x=>({x:dt(x.date),y:+x.weight}));
+  if (C.w) C.w.destroy();
+  C.w = new Chart(document.getElementById('wc'), {
+    type:'line',
+    data:{ datasets:[
+      { label:'体重', data:pts, borderColor:'#AF52DE', backgroundColor:'rgba(175,82,222,0.07)',
+        borderWidth:2, pointRadius:pts.length>60?0:4, pointBackgroundColor:'#AF52DE',
+        pointBorderColor:'#fff', pointBorderWidth:2, tension:0.3, fill:true },
+      { label:'目標90kg',
+        data: pts.length>=2 ? [{x:pts[0].x,y:G_W},{x:pts[pts.length-1].x,y:G_W}] : [],
+        borderColor:'#34C759', borderWidth:1.5, borderDash:[5,4], pointRadius:0, fill:false }
     ]},
-    options: { responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
-      scales:{ x:{grid:{color:'#1E2820'},ticks:{maxTicksLimit:8}}, y:{grid:{color:'#1E2820'},min:Math.floor((Math.min(...vals,GOAL_W)-2)/5)*5} }
-    }
+    options:{...baseOpts,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toFixed(1)} kg`}}},
+      scales:{x:tx, y:{...ty, ticks:{...ty.ticks,callback:v=>v+'kg'},
+        suggestedMin: pts.length ? Math.floor(Math.min(...pts.map(p=>p.y),G_W)-2) : G_W }}}
   });
 }
 
-function renderStepsChart() {
-  const data = filterDays(allData.filter(d=>d.steps!=null), 30);
-  const labels = data.map(d => fmt(d.date));
-  const vals = data.map(d => Math.round(d.steps));
-  if (sChart) sChart.destroy();
-  sChart = new Chart(document.getElementById('stepsChart'), {
-    type: 'bar',
-    data: { labels, datasets: [{ label:'歩数', data:vals,
-      backgroundColor: vals.map(v => v>=8000?'rgba(109,184,122,0.7)':v>=5000?'rgba(232,197,71,0.5)':'rgba(232,106,71,0.5)'),
-      borderRadius:4 }]},
-    options: { responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
-      scales:{ x:{grid:{display:false},ticks:{maxTicksLimit:10}}, y:{grid:{color:'#1E2820'}} }
-    }
+function dS(days) {
+  const d = cut(D.filter(x=>x.steps!=null), days);
+  const pts = d.map(x=>({x:dt(x.date),y:Math.round(x.steps)}));
+  if (C.s) C.s.destroy();
+  C.s = new Chart(document.getElementById('sc2'), {
+    type:'bar',
+    data:{ datasets:[{ label:'歩数', data:pts,
+      backgroundColor: pts.map(p=>p.y>=8000?'rgba(52,199,89,0.8)':p.y>=5000?'rgba(255,149,0,0.8)':'rgba(255,59,48,0.8)'),
+      borderRadius:3, barThickness:pts.length>90?2:pts.length>45?4:8 }]},
+    options:{...baseOpts,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toLocaleString()} 歩`}}},
+      scales:{x:tx, y:{...ty,ticks:{...ty.ticks,callback:v=>v>=10000?(v/1000)+'k':v}}}}
   });
 }
 
-function renderBpChart() {
-  const data = filterDays(allData.filter(d=>d.bp_sys!=null&&d.bp_dia!=null), 60);
-  const labels = data.map(d => fmt(d.date));
-  if (bChart) bChart.destroy();
-  bChart = new Chart(document.getElementById('bpChart'), {
-    type: 'line',
-    data: { labels, datasets: [
-      { label:'最高血圧', data:data.map(d=>d.bp_sys), borderColor:'#E86A47', borderWidth:2, pointRadius:data.length>30?0:3, tension:0.3, fill:false },
-      { label:'最低血圧', data:data.map(d=>d.bp_dia), borderColor:'#6DB87A', borderWidth:2, pointRadius:data.length>30?0:3, tension:0.3, fill:false },
-      { label:'基準130', data:Array(labels.length).fill(130), borderColor:'rgba(232,197,71,0.3)', borderWidth:1, borderDash:[4,4], pointRadius:0, fill:false }
+function dB(days) {
+  const d = cut(D.filter(x=>x.bp_sys_max!=null), days);
+  const sysPts = d.map(x=>({x:dt(x.date), y:[x.bp_sys_min??x.bp_sys_max, x.bp_sys_max]}));
+  const diaPts = d.map(x=>({x:dt(x.date), y:[x.bp_dia_min??x.bp_dia_max, x.bp_dia_max]}));
+  const th = d.length>45?2:d.length>20?5:8;
+  if (C.b) C.b.destroy();
+  C.b = new Chart(document.getElementById('bc'), {
+    type:'bar',
+    data:{ datasets:[
+      { label:'最高血圧', data:sysPts, backgroundColor:'rgba(255,59,48,0.75)', borderColor:'#FF3B30', borderWidth:1, borderRadius:2, barThickness:th },
+      { label:'最低血圧', data:diaPts, backgroundColor:'rgba(255,45,85,0.5)', borderColor:'#FF2D55', borderWidth:1, borderRadius:2, barThickness:th }
     ]},
-    options: { responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{labels:{boxWidth:12,padding:14,font:{size:11}}}},
-      scales:{ x:{grid:{color:'#1E2820'},ticks:{maxTicksLimit:8}}, y:{grid:{color:'#1E2820'},suggestedMin:60,suggestedMax:160} }
-    }
+    options:{...baseOpts,
+      plugins:{
+        legend:{display:true, labels:{boxWidth:10,font:{size:11},padding:10}},
+        tooltip:{callbacks:{label:ctx=>{const[mn,mx]=ctx.raw.y; return ` ${ctx.dataset.label}: ${mn===mx?mx:mn+'–'+mx} mmHg`;}}}
+      },
+      scales:{x:tx, y:{...ty, suggestedMin:60, suggestedMax:180}}}
   });
 }
 
-function renderTable() {
-  const rows = [...allData].reverse().slice(0, 50);
-  const wArr = allData.filter(d=>d.weight!=null);
-  const tbody = document.getElementById('tbody');
-  tbody.innerHTML = rows.map(r => {
-    const wi = wArr.findIndex(d=>d.date===r.date);
-    let diffHtml = '<td>—</td>';
-    if (r.weight != null && wi > 0) {
-      const d = (parseFloat(r.weight) - parseFloat(wArr[wi-1].weight)).toFixed(1);
-      const cls = d < 0 ? 'down' : d > 0 ? 'up' : 'same';
-      diffHtml = `<td class="td-d ${cls}">${d>0?'+':''}${d}</td>`;
+function dF(days) {
+  const d = cut(D.filter(x=>x.body_fat!=null), days);
+  if (!d.length) return;
+  const pts = d.map(x=>({x:dt(x.date),y:+x.body_fat}));
+  if (C.f) C.f.destroy();
+  C.f = new Chart(document.getElementById('fc'), {
+    type:'line',
+    data:{ datasets:[{ label:'体脂肪率', data:pts, borderColor:'#5856D6', backgroundColor:'rgba(88,86,214,0.07)',
+      borderWidth:2, pointRadius:pts.length>60?0:4, pointBackgroundColor:'#5856D6',
+      pointBorderColor:'#fff', pointBorderWidth:2, tension:0.3, fill:true }]},
+    options:{...baseOpts,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toFixed(1)}%`}}},
+      scales:{x:tx, y:{...ty,ticks:{...ty.ticks,callback:v=>v+'%'}}}}
+  });
+}
+
+function dTable() {
+  const rows = [...D].reverse().slice(0,50);
+  const wA = D.filter(d=>d.weight!=null);
+  document.getElementById('tbody').innerHTML = rows.map(r => {
+    const dt2 = new Date(r.date+'T00:00:00');
+    const ds = `${dt2.getFullYear()}/${dt2.getMonth()+1}/${dt2.getDate()}`;
+    const wi = wA.findIndex(d=>d.date===r.date);
+    let dh = '<td style="color:var(--text3)">—</td>';
+    if (r.weight!=null && wi>0) {
+      const d = (+r.weight - +wA[wi-1].weight).toFixed(1);
+      const cl = d<0?'good':d>0?'bad':'neutral';
+      dh = `<td class="fw7 ${cl}">${d>0?'+':''}${d} kg</td>`;
     }
-    const dt = new Date(r.date+'T00:00:00');
-    const dateStr = `${dt.getFullYear()}/${dt.getMonth()+1}/${dt.getDate()}`;
+    const bSys = r.bp_sys_max!=null ? (r.bp_sys_min===r.bp_sys_max?`${r.bp_sys_max}`:`${r.bp_sys_min}–${r.bp_sys_max}`) : '—';
+    const bDia = r.bp_dia_max!=null ? (r.bp_dia_min===r.bp_dia_max?`${r.bp_dia_max}`:`${r.bp_dia_min}–${r.bp_dia_max}`) : '—';
     return `<tr>
-      <td>${dateStr}</td>
-      <td class="td-w">${r.weight != null ? parseFloat(r.weight).toFixed(1) : '—'}</td>
-      ${diffHtml}
-      <td>${r.steps != null ? Math.round(r.steps).toLocaleString() : '—'}</td>
-      <td style="font-size:13px;color:var(--sub)">${r.bp_sys != null ? `${r.bp_sys} / ${r.bp_dia}` : '—'}</td>
+      <td>${ds}</td>
+      <td class="fw7" style="color:var(--c-weight)">${r.weight!=null?(+r.weight).toFixed(1)+' kg':'—'}</td>
+      ${dh}
+      <td class="fw7" style="color:${r.steps!=null?'var(--c-steps)':'var(--text3)'}">${r.steps!=null?Math.round(r.steps).toLocaleString():'—'}</td>
+      <td class="fw7" style="color:${r.bp_sys_max!=null?'var(--c-sys)':'var(--text3)'}">${bSys}</td>
+      <td class="fw7" style="color:${r.bp_dia_max!=null?'var(--c-dia)':'var(--text3)'}">${bDia}</td>
+      <td class="fw7" style="color:${r.body_fat!=null?'var(--c-fat)':'var(--text3)'}">${r.body_fat!=null?(+r.body_fat).toFixed(1)+'%':'—'}</td>
     </tr>`;
   }).join('');
 }
 
-loadData();
+init();
 </script>
 </body>
 </html>
