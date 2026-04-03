@@ -623,7 +623,7 @@ function renderTable() {
       ${dh}
       <td class="fw" style="color:${r.steps!=null?'var(--orange)':'var(--t2)'}">${r.steps!=null?Math.round(r.steps).toLocaleString():'—'}</td>
       <td class="fw" style="color:${r.bp_sys_max!=null?'var(--red)':'var(--t2)'}">${bSys}</td>
-      <td class="fw" style="color:${r.bp_dia_max!=null?'var(--red)':'var(--t2)');opacity:.75">${bDia}</td>
+      <td class="fw" style="color:${r.bp_dia_max!=null?'var(--red)':'var(--t2)'};opacity:.75">${bDia}</td>
       <td class="fw" style="color:${r.body_fat!=null?'var(--pink)':'var(--t2)'}">${r.body_fat!=null?(+r.body_fat).toFixed(1)+'%':'—'}</td>
     </tr>`;
   }).join('');
