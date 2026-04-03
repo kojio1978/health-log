@@ -9,19 +9,12 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <style>
 /*
-  Apple Human Interface Guidelines + ヘルスケアアプリ準拠カラー
-  ─────────────────────────────────────────────
-  体重・体脂肪 → ピンク   #FF2D55  （ヘルスケアの身体測定値カラー）
-  歩数         → オレンジ #FF9500  （ヘルスケアのアクティビティカラー）
-  血圧（最高） → 赤      #FF3B30  （ヘルスケアの心臓カラー）
-  血圧（最低） → 赤薄    #FF3B30 75%
-  目標達成     → グリーン #34C759
-  リンク       → ブルー   #007AFF
-  テキスト主   → #000000
-  テキスト副   → rgba(60,60,67,0.6)
-  区切り線     → rgba(60,60,67,0.29)
-  背景         → #F2F2F7
-  カード       → #FFFFFF
+  ヘルスケアアプリ準拠カラー
+  体重・体脂肪率 → 紫    #AF52DE
+  歩数           → 黄色  #FFD60A
+  血圧           → オレンジ #FF9500
+  目標・達成     → グリーン #34C759
+  リンク         → ブルー #007AFF
 */
 :root {
   --bg:     #F2F2F7;
@@ -30,139 +23,135 @@
   --t2:     rgba(60,60,67,0.6);
   --t3:     rgba(60,60,67,0.3);
   --sep:    rgba(60,60,67,0.29);
-  --fill:   rgba(120,120,128,0.08);
-  --pink:   #FF2D55;
+  --fill:   rgba(120,120,128,0.12);
+  --purple: #AF52DE;
+  --yellow: #FFD60A;
   --orange: #FF9500;
-  --red:    #FF3B30;
   --green:  #34C759;
   --blue:   #007AFF;
   --r:      12px;
-  --sh:     0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
+  --sh:     0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
 }
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-body {
-  background: var(--bg);
-  color: var(--t1);
-  font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-  font-size: 15px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--bg);color:var(--t1);
+  font-family:'Noto Sans JP',-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
+  font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;
 }
 
-/* ── LOADING / ERROR ── */
-.screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; gap:12px; }
-.spinner { width:32px; height:32px; border:2.5px solid var(--sep); border-top-color:var(--blue); border-radius:50%; animation:spin .8s linear infinite; }
-@keyframes spin { to { transform:rotate(360deg); } }
-#error-screen { display:none; }
-.err-t { font-size:17px; font-weight:700; color:var(--red); }
-.err-m { font-size:14px; color:var(--t2); max-width:360px; text-align:center; line-height:1.6; }
+/* Loading / Error */
+.screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:12px;}
+.spinner{width:32px;height:32px;border:2.5px solid var(--sep);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#error-screen{display:none;}
+.err-t{font-size:17px;font-weight:700;color:#FF3B30;}
+.err-m{font-size:14px;color:var(--t2);max-width:360px;text-align:center;line-height:1.6;}
 
-/* ── HEADER ── */
-#dashboard { display:none; }
-header {
-  background: rgba(242,242,247,0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 0.5px solid var(--sep);
-  position: sticky; top:0; z-index:100;
+/* Header */
+#dashboard{display:none;}
+header{
+  background:rgba(242,242,247,0.92);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:0.5px solid var(--sep);
+  position:sticky;top:0;z-index:100;
 }
-.hdr { max-width:1280px; margin:0 auto; height:52px; padding:0 24px; display:flex; align-items:center; justify-content:space-between; }
-.logo { font-size:17px; font-weight:700; letter-spacing:-0.3px; }
-.logo em { font-style:normal; color:var(--red); }
-.hdr-right { display:flex; align-items:center; gap:20px; }
-.sync-txt { font-size:12px; color:var(--t2); }
-.goal-btn { font-size:14px; font-weight:500; color:var(--blue); background:none; border:none; font-family:inherit; cursor:pointer; padding:4px 0; }
+.hdr{max-width:1280px;margin:0 auto;height:52px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-size:17px;font-weight:700;letter-spacing:-0.3px;}
+.logo em{font-style:normal;color:var(--purple);}
+.hdr-r{display:flex;align-items:center;gap:20px;}
+.sync-txt{font-size:12px;color:var(--t2);}
+.goal-btn{font-size:14px;font-weight:500;color:var(--blue);background:none;border:none;font-family:inherit;cursor:pointer;padding:4px 0;}
 
-/* ── LAYOUT ── */
-.main { max-width:1280px; margin:0 auto; padding:20px 24px 60px; display:grid; gap:16px; }
+/* Layout */
+.main{max-width:1280px;margin:0 auto;padding:20px 24px 60px;display:grid;gap:16px;}
 
-/* ── SUMMARY ROW ── */
-.sum-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
-.sc {
-  background:var(--card); border-radius:var(--r);
-  padding:16px 18px; box-shadow:var(--sh);
+/* Summary row */
+.sum-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.sc{background:var(--card);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh);}
+.sc-lbl{font-size:13px;font-weight:600;margin-bottom:4px;}
+.sc-date{font-size:11px;color:var(--t2);margin-bottom:4px;}
+.sc-num{font-size:32px;font-weight:700;letter-spacing:-1px;line-height:1;color:var(--t1);font-variant-numeric:tabular-nums;}
+.sc-unit{font-size:15px;font-weight:400;color:var(--t2);margin-left:2px;}
+.sc-sub{font-size:12px;color:var(--t2);margin-top:6px;}
+/* 血圧のみ2段 */
+.bp-sys{font-size:32px;font-weight:700;letter-spacing:-1px;line-height:1.2;color:var(--t1);}
+.bp-dia{font-size:28px;font-weight:700;letter-spacing:-1px;line-height:1;color:var(--t1);opacity:.6;}
+.bp-unit{font-size:11px;color:var(--t2);margin-top:4px;}
+/* バッジ（iOS風pill） */
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 9px;border-radius:10px;margin-top:6px;}
+.badge-r{background:rgba(255,59,48,.1);color:#FF3B30;}
+.badge-o{background:rgba(255,149,0,.1);color:var(--orange);}
+.badge-g{background:rgba(52,199,89,.1);color:var(--green);}
+
+/* Goal card */
+.goal-card{
+  background:var(--card);border-radius:var(--r);
+  padding:20px 24px;box-shadow:var(--sh);
+  display:grid;grid-template-columns:110px 1fr 220px;gap:24px;align-items:center;
 }
-.sc-lbl { font-size:12px; font-weight:500; color:var(--t2); margin-bottom:6px; }
-.sc-date { font-size:11px; color:var(--t2); margin-bottom:4px; }
-/* 全カードで数値サイズを統一 */
-.sc-num { font-size:32px; font-weight:700; letter-spacing:-1px; line-height:1; font-variant-numeric:tabular-nums; }
-.sc-unit { font-size:15px; font-weight:400; color:var(--t2); margin-left:2px; }
-.sc-delta { font-size:12px; font-weight:500; margin-top:8px; }
-/* 血圧だけ2段 */
-.bp-sys { font-size:32px; font-weight:700; letter-spacing:-1px; line-height:1.15; color:var(--red); }
-.bp-dia { font-size:28px; font-weight:700; letter-spacing:-1px; line-height:1; color:var(--red); opacity:.7; }
-.bp-unit { font-size:11px; color:var(--t2); margin-top:4px; }
-/* バッジ */
-.badge { display:inline-block; font-size:11px; font-weight:500; padding:2px 8px; border-radius:10px; margin-top:6px; }
-.badge-r { background:rgba(255,59,48,.1); color:var(--red); }
-.badge-o { background:rgba(255,149,0,.1); color:var(--orange); }
-.badge-g { background:rgba(52,199,89,.1); color:var(--green); }
-/* delta色 */
-.c-g { color:var(--green); }
-.c-r { color:var(--red); }
-.c-n { color:var(--t2); }
+.ring-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.ring{position:relative;width:96px;height:96px;}
+.ring svg{transform:rotate(-90deg);}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ring-v{font-size:20px;font-weight:700;color:var(--purple);letter-spacing:-0.5px;}
+.ring-u{font-size:10px;color:var(--t2);}
+.ring-sub{font-size:11px;color:var(--t2);}
+.goal-nums{display:grid;grid-template-columns:repeat(3,1fr);}
+.gn{padding:0 16px;border-right:0.5px solid var(--sep);}
+.gn:first-child{padding-left:0;}
+.gn:last-child{border-right:none;}
+.gn-l{font-size:11px;color:var(--t2);margin-bottom:4px;}
+.gn-v{font-size:26px;font-weight:700;letter-spacing:-0.5px;color:var(--t1);}
+.gp-lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--t2);margin-bottom:6px;}
+.gp-bg{height:5px;background:var(--fill);border-radius:3px;overflow:hidden;}
+.gp-fill{height:5px;background:linear-gradient(90deg,var(--purple),var(--green));border-radius:3px;transition:width 1.2s ease;}
+.gp-pct{font-size:13px;font-weight:600;color:var(--green);margin-top:8px;text-align:right;}
 
-/* ── GOAL CARD ── */
-.goal-card {
-  background:var(--card); border-radius:var(--r);
-  padding:20px 24px; box-shadow:var(--sh);
-  display:grid; grid-template-columns:110px 1fr 220px; gap:24px; align-items:center;
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;}
+.modal-bg.show{display:flex;}
+.modal{background:var(--card);border-radius:14px;padding:24px;width:280px;box-shadow:0 20px 60px rgba(0,0,0,0.25);}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:16px;}
+.modal input{width:100%;border:0.5px solid var(--sep);border-radius:8px;padding:10px 14px;font-size:17px;font-family:inherit;outline:none;background:var(--fill);}
+.modal input:focus{border-color:var(--blue);background:#fff;}
+.modal-btns{display:flex;justify-content:flex-end;gap:16px;margin-top:16px;}
+.modal-btns button{font-family:inherit;font-size:15px;font-weight:500;border:none;background:none;cursor:pointer;padding:4px 0;}
+.m-cancel{color:var(--t2);}
+.m-ok{color:var(--blue);}
+
+/* Chart cards */
+.cc{background:var(--card);border-radius:var(--r);padding:16px 18px 14px;box-shadow:var(--sh);}
+.cc-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:12px;}
+.cc-title{font-size:15px;font-weight:700;}
+.cc-sub{font-size:11px;color:var(--t2);margin-top:2px;}
+.chart-box{position:relative;height:190px;}
+
+/* iOS Segmented Control style period tabs */
+.ptabs{display:flex;background:var(--fill);border-radius:9px;padding:2px;gap:0;flex-shrink:0;}
+.pt{
+  border:none;background:none;font-family:inherit;
+  font-size:12px;font-weight:500;color:var(--t2);
+  padding:5px 10px;border-radius:7px;cursor:pointer;
+  transition:all .15s;white-space:nowrap;
 }
-.ring-wrap { display:flex; flex-direction:column; align-items:center; gap:6px; }
-.ring { position:relative; width:96px; height:96px; }
-.ring svg { transform:rotate(-90deg); }
-.ring-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-.ring-v { font-size:20px; font-weight:700; color:var(--pink); letter-spacing:-0.5px; }
-.ring-u { font-size:10px; color:var(--t2); }
-.ring-sub { font-size:11px; color:var(--t2); }
-.goal-nums { display:grid; grid-template-columns:repeat(3,1fr); gap:0; }
-.gn { padding:0 16px; border-right:0.5px solid var(--sep); }
-.gn:first-child { padding-left:0; }
-.gn:last-child { border-right:none; }
-.gn-l { font-size:11px; color:var(--t2); margin-bottom:4px; }
-.gn-v { font-size:26px; font-weight:700; letter-spacing:-0.5px; }
-.goal-prog { }
-.gp-lbl { display:flex; justify-content:space-between; font-size:11px; color:var(--t2); margin-bottom:6px; }
-.gp-bg { height:5px; background:var(--fill); border-radius:3px; overflow:hidden; }
-.gp-fill { height:5px; background:linear-gradient(90deg,var(--pink),var(--green)); border-radius:3px; transition:width 1.2s ease; }
-.gp-pct { font-size:13px; font-weight:600; color:var(--green); margin-top:8px; text-align:right; }
+.pt.on{
+  background:var(--card);color:var(--t1);font-weight:600;
+  box-shadow:0 1px 3px rgba(0,0,0,0.12),0 1px 1px rgba(0,0,0,0.08);
+}
 
-/* ── MODAL ── */
-.modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:200; align-items:center; justify-content:center; }
-.modal-bg.show { display:flex; }
-.modal { background:var(--card); border-radius:14px; padding:24px; width:280px; box-shadow:0 20px 60px rgba(0,0,0,0.25); }
-.modal h3 { font-size:17px; font-weight:700; margin-bottom:16px; }
-.modal input { width:100%; border:0.5px solid var(--sep); border-radius:8px; padding:10px 14px; font-size:17px; font-family:inherit; outline:none; background:var(--fill); }
-.modal input:focus { border-color:var(--blue); background:#fff; }
-.modal-btns { display:flex; justify-content:flex-end; gap:16px; margin-top:16px; }
-.modal-btns button { font-family:inherit; font-size:15px; font-weight:500; border:none; background:none; cursor:pointer; padding:4px 0; }
-.m-cancel { color:var(--t2); }
-.m-ok { color:var(--blue); }
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 
-/* ── CHART CARDS ── */
-.cc { background:var(--card); border-radius:var(--r); padding:16px 18px 14px; box-shadow:var(--sh); }
-.cc-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; gap:12px; }
-.cc-title { font-size:15px; font-weight:700; }
-.cc-sub { font-size:11px; color:var(--t2); margin-top:2px; }
-.chart-box { position:relative; height:190px; }
-
-/* period tabs — iOS segment control style */
-.ptabs { display:flex; background:var(--fill); border-radius:8px; padding:2px; gap:1px; flex-shrink:0; }
-.pt { border:none; background:none; font-family:inherit; font-size:11px; font-weight:500; color:var(--t2); padding:4px 8px; border-radius:6px; cursor:pointer; transition:all .15s; white-space:nowrap; }
-.pt.on { background:var(--card); color:var(--t1); font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,0.12); }
-
-.two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-
-/* ── TABLE ── */
-.tbl-card { background:var(--card); border-radius:var(--r); box-shadow:var(--sh); overflow:hidden; }
-.tbl-head-row { padding:16px 18px; border-bottom:0.5px solid var(--sep); font-size:15px; font-weight:700; }
-.tbl-wrap { overflow-x:auto; }
-table { width:100%; border-collapse:collapse; }
-th { padding:9px 16px; font-size:11px; font-weight:500; color:var(--t2); border-bottom:0.5px solid var(--sep); text-align:left; white-space:nowrap; }
-td { padding:11px 16px; border-bottom:0.5px solid var(--bg); font-size:14px; }
-tr:last-child td { border-bottom:none; }
-tr:hover td { background:#FAFAFA; }
-.fw { font-weight:700; }
+/* Table */
+.tbl-card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;}
+.tbl-head-row{padding:14px 18px;border-bottom:0.5px solid var(--sep);font-size:15px;font-weight:700;}
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{padding:8px 16px;font-size:11px;font-weight:500;color:var(--t2);border-bottom:0.5px solid var(--sep);text-align:left;white-space:nowrap;}
+td{padding:10px 16px;border-bottom:0.5px solid var(--bg);font-size:14px;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#FAFAFA;}
+.fw{font-weight:700;}
+.dim{color:var(--t2);}
 </style>
 </head>
 <body>
@@ -171,12 +160,10 @@ tr:hover td { background:#FAFAFA; }
   <div class="spinner"></div>
   <p style="font-size:14px;color:var(--t2)">データを読み込んでいます...</p>
 </div>
-
 <div id="error-screen" class="screen">
   <div class="err-t">読み込みエラー</div>
   <div class="err-m" id="err-msg"></div>
 </div>
-
 <div class="modal-bg" id="modal">
   <div class="modal">
     <h3>目標体重を設定</h3>
@@ -192,7 +179,7 @@ tr:hover td { background:#FAFAFA; }
   <header>
     <div class="hdr">
       <div class="logo">BODY<em>LOG</em></div>
-      <div class="hdr-right">
+      <div class="hdr-r">
         <span class="sync-txt" id="sync-info"></span>
         <button class="goal-btn" onclick="openModal()">目標体重を変更</button>
       </div>
@@ -201,22 +188,22 @@ tr:hover td { background:#FAFAFA; }
 
   <div class="main">
 
-    <!-- ── サマリー4カード ── -->
+    <!-- サマリー -->
     <div class="sum-row">
       <div class="sc">
-        <div class="sc-lbl">体重</div>
+        <div class="sc-lbl" style="color:var(--purple)">体重</div>
         <div class="sc-date" id="w-date">—</div>
-        <div><span class="sc-num" id="w-val" style="color:var(--pink)">—</span><span class="sc-unit">kg</span></div>
-        <div class="sc-delta" id="w-delta">—</div>
+        <div><span class="sc-num" id="w-val">—</span><span class="sc-unit">kg</span></div>
+        <div class="sc-sub" id="w-delta">—</div>
       </div>
       <div class="sc">
-        <div class="sc-lbl">歩数</div>
+        <div class="sc-lbl" style="color:var(--yellow)">歩数</div>
         <div class="sc-date" id="s-date">—</div>
-        <div><span class="sc-num" id="s-val" style="color:var(--orange)">—</span><span class="sc-unit">歩</span></div>
-        <div class="sc-delta" id="s-delta">—</div>
+        <div><span class="sc-num" id="s-val">—</span><span class="sc-unit">歩</span></div>
+        <div class="sc-sub" id="s-delta">—</div>
       </div>
       <div class="sc">
-        <div class="sc-lbl">血圧</div>
+        <div class="sc-lbl" style="color:var(--orange)">血圧</div>
         <div class="sc-date" id="b-date">—</div>
         <div class="bp-sys" id="b-sys">—</div>
         <div class="bp-dia" id="b-dia">—</div>
@@ -224,14 +211,14 @@ tr:hover td { background:#FAFAFA; }
         <div id="b-badge"></div>
       </div>
       <div class="sc">
-        <div class="sc-lbl">体脂肪率</div>
+        <div class="sc-lbl" style="color:var(--purple)">体脂肪率</div>
         <div class="sc-date" id="f-date">—</div>
-        <div><span class="sc-num" id="f-val" style="color:var(--pink)">—</span><span class="sc-unit">%</span></div>
-        <div class="sc-delta" id="f-delta">—</div>
+        <div><span class="sc-num" id="f-val">—</span><span class="sc-unit">%</span></div>
+        <div class="sc-sub" id="f-delta">—</div>
       </div>
     </div>
 
-    <!-- ── 目標リング ── -->
+    <!-- 目標 -->
     <div class="goal-card">
       <div class="ring-wrap">
         <div class="ring">
@@ -251,21 +238,21 @@ tr:hover td { background:#FAFAFA; }
       <div class="goal-nums">
         <div class="gn">
           <div class="gn-l">開始時</div>
-          <div class="gn-v c-n" id="g-start" style="color:var(--t2)">—</div>
+          <div class="gn-v" id="g-start">—</div>
           <div style="font-size:11px;color:var(--t2)">kg</div>
         </div>
         <div class="gn">
           <div class="gn-l">減量</div>
-          <div class="gn-v c-g" id="g-lost">—</div>
+          <div class="gn-v" id="g-lost">—</div>
           <div style="font-size:11px;color:var(--t2)">kg</div>
         </div>
         <div class="gn">
           <div class="gn-l">残り</div>
-          <div class="gn-v" style="color:var(--pink)" id="g-remain">—</div>
+          <div class="gn-v" id="g-remain">—</div>
           <div style="font-size:11px;color:var(--t2)">kg</div>
         </div>
       </div>
-      <div class="goal-prog">
+      <div>
         <div class="gp-lbl">
           <span>開始 <span id="gp-s">—</span>kg</span>
           <span>目標 <span id="gp-g">—</span>kg</span>
@@ -275,11 +262,11 @@ tr:hover td { background:#FAFAFA; }
       </div>
     </div>
 
-    <!-- ── 体重グラフ ── -->
+    <!-- 体重グラフ -->
     <div class="cc">
       <div class="cc-head">
         <div>
-          <div class="cc-title">体重</div>
+          <div class="cc-title" style="color:var(--purple)">体重</div>
           <div class="cc-sub" id="w-goal-sub">目標ライン —kg</div>
         </div>
         <div class="ptabs" id="wt">
@@ -294,11 +281,11 @@ tr:hover td { background:#FAFAFA; }
       <div class="chart-box"><canvas id="wc"></canvas></div>
     </div>
 
-    <!-- ── 歩数 + 血圧 ── -->
+    <!-- 歩数 + 血圧 -->
     <div class="two-col">
       <div class="cc">
         <div class="cc-head">
-          <div><div class="cc-title">歩数</div></div>
+          <div><div class="cc-title" style="color:var(--yellow)">歩数</div></div>
           <div class="ptabs" id="st">
             <button class="pt" data-d="7">1週</button>
             <button class="pt on" data-d="30">1ヶ月</button>
@@ -312,7 +299,7 @@ tr:hover td { background:#FAFAFA; }
       <div class="cc">
         <div class="cc-head">
           <div>
-            <div class="cc-title">血圧</div>
+            <div class="cc-title" style="color:var(--orange)">血圧</div>
             <div class="cc-sub">バーは測定範囲（最小〜最大）</div>
           </div>
           <div class="ptabs" id="bt">
@@ -327,10 +314,10 @@ tr:hover td { background:#FAFAFA; }
       </div>
     </div>
 
-    <!-- ── 体脂肪率グラフ ── -->
+    <!-- 体脂肪率グラフ -->
     <div class="cc">
       <div class="cc-head">
-        <div><div class="cc-title">体脂肪率</div></div>
+        <div><div class="cc-title" style="color:var(--purple)">体脂肪率</div></div>
         <div class="ptabs" id="ft">
           <button class="pt" data-d="7">1週</button>
           <button class="pt on" data-d="30">1ヶ月</button>
@@ -343,7 +330,7 @@ tr:hover td { background:#FAFAFA; }
       <div class="chart-box"><canvas id="fc"></canvas></div>
     </div>
 
-    <!-- ── 履歴テーブル ── -->
+    <!-- 履歴 -->
     <div class="tbl-card">
       <div class="tbl-head-row">記録履歴（直近50件）</div>
       <div class="tbl-wrap">
@@ -351,12 +338,12 @@ tr:hover td { background:#FAFAFA; }
           <thead>
             <tr>
               <th>日付</th>
-              <th>体重</th>
+              <th style="color:var(--purple)">体重</th>
               <th>前日比</th>
-              <th>歩数</th>
-              <th>最高血圧</th>
-              <th>最低血圧</th>
-              <th>体脂肪率</th>
+              <th style="color:var(--yellow)">歩数</th>
+              <th style="color:var(--orange)">最高血圧</th>
+              <th style="color:var(--orange)">最低血圧</th>
+              <th style="color:var(--purple)">体脂肪率</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -369,262 +356,238 @@ tr:hover td { background:#FAFAFA; }
 
 <script>
 const GAS = 'https://script.google.com/macros/s/AKfycbxD77c6R38hE7ViqwD_DTnW7zQYbqx9ANmIrUAGOSMONyDcduI1cnnt9Lu6JB-QEiC0fQ/exec';
-let D = [], C = {}, GOAL = +(localStorage.getItem('bodylog_goal') || 90);
+let D=[], C={}, GOAL=+(localStorage.getItem('bodylog_goal')||90);
 
-Chart.defaults.font.family = "'Noto Sans JP', -apple-system, sans-serif";
-Chart.defaults.color = 'rgba(60,60,67,0.6)';
+Chart.defaults.font.family="'Noto Sans JP',-apple-system,sans-serif";
+Chart.defaults.color='rgba(60,60,67,0.6)';
 
-const toDate = s => new Date(s + 'T00:00:00');
-const fmtD   = s => { const d = new Date(s+'T00:00:00'); return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`; };
-
-function cut(arr, days) {
-  if (!days) return arr;
-  const c = new Date(); c.setDate(c.getDate()-days);
-  return arr.filter(d => d.date >= c.toISOString().slice(0,10));
-}
-
-const xAxis = {
-  type:'time',
-  time:{ tooltipFormat:'yyyy/MM/dd', displayFormats:{ day:'M/d', week:'M/d', month:'M月' } },
-  grid:{ display:false },
-  ticks:{ maxTicksLimit:8, font:{size:11} }
+const toDate=s=>new Date(s+'T00:00:00');
+const fmtD=s=>{const d=new Date(s+'T00:00:00');return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;};
+const cut=(arr,days)=>{
+  if(!days)return arr;
+  const c=new Date();c.setDate(c.getDate()-days);
+  return arr.filter(d=>d.date>=c.toISOString().slice(0,10));
 };
-const yAxis = { grid:{ color:'rgba(0,0,0,0.04)' }, ticks:{ font:{size:11} } };
 
-async function init() {
-  try {
-    const r = await fetch(GAS);
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    D = (await r.json()).filter(d => d.date);
-    if (!D.length) throw new Error('データがまだありません');
+const xAxis={
+  type:'time',
+  time:{tooltipFormat:'yyyy/MM/dd',displayFormats:{day:'M/d',week:'M/d',month:'M月'}},
+  grid:{display:false},
+  ticks:{maxTicksLimit:8,font:{size:11}}
+};
+const yAxis={grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:11}}};
+
+async function init(){
+  try{
+    const r=await fetch(GAS);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    D=(await r.json()).filter(d=>d.date);
+    if(!D.length)throw new Error('データがまだありません');
     render();
-  } catch(e) {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('error-screen').style.display = 'flex';
-    document.getElementById('err-msg').textContent = e.message;
+  }catch(e){
+    document.getElementById('loading').style.display='none';
+    document.getElementById('error-screen').style.display='flex';
+    document.getElementById('err-msg').textContent=e.message;
   }
 }
 
-function render() {
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('dashboard').style.display = 'block';
+function set(id,v){document.getElementById(id).textContent=v;}
 
-  const wD = D.filter(d => d.weight != null);
-  const sD = D.filter(d => d.steps  != null);
-  const bD = D.filter(d => d.bp_sys_max != null);
-  const fD = D.filter(d => d.body_fat != null);
+function render(){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('dashboard').style.display='block';
+
+  const wD=D.filter(d=>d.weight!=null);
+  const sD=D.filter(d=>d.steps!=null);
+  const bD=D.filter(d=>d.bp_sys_max!=null);
+  const fD=D.filter(d=>d.body_fat!=null);
 
   // 体重
-  const lw = wD[wD.length-1], pw = wD[wD.length-2];
-  const cw = lw ? +lw.weight : 0;
-  set('w-val',  cw.toFixed(1));
-  set('w-date', lw ? fmtD(lw.date) : '—');
-  if (pw) {
-    const d = (cw - +pw.weight).toFixed(1);
-    setDelta('w-delta', d, 'kg', true);
-  }
+  const lw=wD[wD.length-1],pw=wD[wD.length-2];
+  const cw=lw?+lw.weight:0;
+  set('w-val',cw.toFixed(1));
+  set('w-date',lw?fmtD(lw.date):'—');
+  if(pw){const d=(cw-+pw.weight).toFixed(1);set('w-delta',`前回比 ${+d>0?'+':''}${d} kg`);}
 
   // 歩数
-  const ls = sD[sD.length-1], ps = sD[sD.length-2];
-  if (ls) {
-    set('s-val',  Math.round(ls.steps).toLocaleString());
-    set('s-date', fmtD(ls.date));
-    if (ps) {
-      const d = Math.round(ls.steps - ps.steps);
-      setDelta('s-delta', (d>=0?'+':'')+d.toLocaleString(), '歩', d>=0);
-    }
+  const ls=sD[sD.length-1],ps=sD[sD.length-2];
+  if(ls){
+    set('s-val',Math.round(ls.steps).toLocaleString());
+    set('s-date',fmtD(ls.date));
+    if(ps){const d=Math.round(ls.steps-ps.steps);set('s-delta',`前回比 ${d>=0?'+':''}${d.toLocaleString()} 歩`);}
   }
 
   // 血圧
-  const lb = bD[bD.length-1];
-  if (lb) {
-    set('b-date', fmtD(lb.date));
-    set('b-sys', lb.bp_sys_min===lb.bp_sys_max ? `${lb.bp_sys_max}` : `${lb.bp_sys_min}–${lb.bp_sys_max}`);
-    set('b-dia', lb.bp_dia_min===lb.bp_dia_max ? `${lb.bp_dia_max}` : `${lb.bp_dia_min}–${lb.bp_dia_max}`);
-    const sys = lb.bp_sys_max;
-    const bdg = document.getElementById('b-badge');
-    bdg.innerHTML = sys>=140
-      ? '<span class="badge badge-r">高血圧域</span>'
-      : sys>=130
-        ? '<span class="badge badge-o">高値血圧</span>'
-        : '<span class="badge badge-g">正常域</span>';
+  const lb=bD[bD.length-1];
+  if(lb){
+    set('b-date',fmtD(lb.date));
+    set('b-sys',lb.bp_sys_min===lb.bp_sys_max?`${lb.bp_sys_max}`:`${lb.bp_sys_min}–${lb.bp_sys_max}`);
+    set('b-dia',lb.bp_dia_min===lb.bp_dia_max?`${lb.bp_dia_max}`:`${lb.bp_dia_min}–${lb.bp_dia_max}`);
+    const sys=lb.bp_sys_max;
+    document.getElementById('b-badge').innerHTML=sys>=140
+      ?'<span class="badge badge-r">高血圧域</span>'
+      :sys>=130?'<span class="badge badge-o">高値血圧</span>'
+      :'<span class="badge badge-g">正常域</span>';
   }
 
   // 体脂肪
-  const lf = fD[fD.length-1], pf = fD[fD.length-2];
-  if (lf) {
-    set('f-val',  (+lf.body_fat).toFixed(1));
-    set('f-date', fmtD(lf.date));
-    if (pf) {
-      const d = (+lf.body_fat - +pf.body_fat).toFixed(1);
-      setDelta('f-delta', d, '%', true);
-    }
+  const lf=fD[fD.length-1],pf=fD[fD.length-2];
+  if(lf){
+    set('f-val',(+lf.body_fat).toFixed(1));
+    set('f-date',fmtD(lf.date));
+    if(pf){const d=(+lf.body_fat-+pf.body_fat).toFixed(1);set('f-delta',`前回比 ${+d>0?'+':''}${d}%`);}
   }
 
-  // 目標リング
   renderGoal(wD);
+  set('sync-info',`最終データ: ${D[D.length-1]?.date??'—'}`);
 
-  set('sync-info', `最終データ: ${D[D.length-1]?.date ?? '—'}`);
-
-  drawW(30); drawS(30); drawB(30); drawF(30);
+  drawW(30);drawS(30);drawB(30);drawF(30);
   renderTable();
-  tabs('wt', drawW); tabs('st', drawS); tabs('bt', drawB); tabs('ft', drawF);
+  tabs('wt',drawW);tabs('st',drawS);tabs('bt',drawB);tabs('ft',drawF);
 }
 
-function set(id, val) { document.getElementById(id).textContent = val; }
-
-function setDelta(id, val, unit, goodWhenNegative) {
-  const el = document.getElementById(id);
-  const num = parseFloat(val);
-  const isGood = goodWhenNegative ? num < 0 : num >= 0;
-  el.textContent = `前回比 ${val} ${unit}`;
-  el.className = 'sc-delta ' + (num===0 ? 'c-n' : isGood ? 'c-g' : 'c-r');
+function renderGoal(wD){
+  const lw=wD[wD.length-1];
+  const cw=lw?+lw.weight:0;
+  const sw=wD[0]?+wD[0].weight:138;
+  const lost=Math.max(sw-cw,0).toFixed(1);
+  const remain=Math.max(cw-GOAL,0).toFixed(1);
+  const pct=Math.min(((sw-cw)/Math.max(sw-GOAL,1))*100,100);
+  set('g-cur',cw.toFixed(1));
+  set('g-lbl',GOAL);
+  set('g-start',sw.toFixed(1));
+  set('g-lost',lost);
+  set('g-remain',remain);
+  set('gp-pct',`達成率 ${pct.toFixed(1)}%`);
+  set('gp-s',sw.toFixed(1));
+  set('gp-g',GOAL);
+  set('w-goal-sub',`目標ライン ${GOAL}kg`);
+  setTimeout(()=>{
+    document.getElementById('garc').style.strokeDashoffset=251*(1-pct/100);
+    document.getElementById('gp-bar').style.width=pct.toFixed(1)+'%';
+  },100);
 }
 
-function renderGoal(wD) {
-  const lw = wD[wD.length-1];
-  const cw = lw ? +lw.weight : 0;
-  const startW = wD[0] ? +wD[0].weight : 138;
-  const lost   = Math.max(startW-cw, 0).toFixed(1);
-  const remain = Math.max(cw-GOAL, 0).toFixed(1);
-  const pct    = Math.min(((startW-cw)/Math.max(startW-GOAL,1))*100, 100);
-
-  set('g-cur',    cw.toFixed(1));
-  set('g-lbl',    GOAL);
-  set('g-start',  startW.toFixed(1));
-  set('g-lost',   lost);
-  set('g-remain', remain);
-  set('gp-pct',   `達成率 ${pct.toFixed(1)}%`);
-  set('gp-s',     startW.toFixed(1));
-  set('gp-g',     GOAL);
-  set('w-goal-sub', `目標ライン ${GOAL}kg`);
-  setTimeout(() => {
-    document.getElementById('garc').style.strokeDashoffset = 251*(1-pct/100);
-    document.getElementById('gp-bar').style.width = pct.toFixed(1)+'%';
-  }, 100);
-}
-
-function openModal()  { document.getElementById('goal-input').value=GOAL; document.getElementById('modal').classList.add('show'); }
-function closeModal() { document.getElementById('modal').classList.remove('show'); }
-function saveGoal() {
-  const v = parseFloat(document.getElementById('goal-input').value);
-  if (!isNaN(v) && v>0) {
-    GOAL = v;
-    localStorage.setItem('bodylog_goal', GOAL);
-    const wD = D.filter(d=>d.weight!=null);
-    renderGoal(wD);
+function openModal(){document.getElementById('goal-input').value=GOAL;document.getElementById('modal').classList.add('show');}
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+function saveGoal(){
+  const v=parseFloat(document.getElementById('goal-input').value);
+  if(!isNaN(v)&&v>0){
+    GOAL=v;localStorage.setItem('bodylog_goal',GOAL);
+    renderGoal(D.filter(d=>d.weight!=null));
     drawW(+(document.querySelector('#wt .on').dataset.d));
   }
   closeModal();
 }
-document.getElementById('modal').addEventListener('click', e => { if (e.target.id==='modal') closeModal(); });
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
 
-function tabs(id, fn) {
-  document.getElementById(id).querySelectorAll('.pt').forEach(b => {
-    b.addEventListener('click', () => {
+function tabs(id,fn){
+  document.getElementById(id).querySelectorAll('.pt').forEach(b=>{
+    b.addEventListener('click',()=>{
       document.getElementById(id).querySelectorAll('.pt').forEach(x=>x.classList.remove('on'));
-      b.classList.add('on');
-      fn(+b.dataset.d);
+      b.classList.add('on');fn(+b.dataset.d);
     });
   });
 }
 
-function drawW(days) {
-  const d   = cut(D.filter(x=>x.weight!=null), days);
-  const pts  = d.map(x=>({x:toDate(x.date), y:+x.weight}));
-  const goal = pts.length>=2 ? [{x:pts[0].x,y:GOAL},{x:pts[pts.length-1].x,y:GOAL}] : [];
-  if (C.w) C.w.destroy();
-  C.w = new Chart(document.getElementById('wc'), {
+function drawW(days){
+  const d=cut(D.filter(x=>x.weight!=null),days);
+  const pts=d.map(x=>({x:toDate(x.date),y:+x.weight}));
+  const goal=pts.length>=2?[{x:pts[0].x,y:GOAL},{x:pts[pts.length-1].x,y:GOAL}]:[];
+  if(C.w)C.w.destroy();
+  C.w=new Chart(document.getElementById('wc'),{
     type:'line',
-    data:{ datasets:[
-      { label:'体重', data:pts, borderColor:'#FF2D55', backgroundColor:'rgba(255,45,85,0.06)',
-        borderWidth:2, pointRadius:pts.length>60?0:4, pointBackgroundColor:'#FF2D55',
-        pointBorderColor:'#fff', pointBorderWidth:2, tension:0.3, fill:true },
-      { label:`目標 ${GOAL}kg`, data:goal, borderColor:'#34C759', borderWidth:1.5,
-        borderDash:[6,4], pointRadius:0, fill:false }
+    data:{datasets:[
+      {label:'体重',data:pts,borderColor:'#AF52DE',backgroundColor:'rgba(175,82,222,0.08)',
+       borderWidth:2,pointRadius:pts.length>60?0:4,pointBackgroundColor:'#AF52DE',
+       pointBorderColor:'#fff',pointBorderWidth:2,tension:0.3,fill:true},
+      {label:`目標 ${GOAL}kg`,data:goal,borderColor:'#34C759',borderWidth:1.5,
+       borderDash:[6,4],pointRadius:0,fill:false}
     ]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toFixed(1)} kg`}} },
-      scales:{ x:xAxis, y:{...yAxis, ticks:{...yAxis.ticks,callback:v=>v+'kg'},
-        suggestedMin: pts.length ? Math.floor(Math.min(...pts.map(p=>p.y),GOAL)-2) : GOAL-10 } }
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toFixed(1)} kg`}}},
+      scales:{x:xAxis,y:{...yAxis,ticks:{...yAxis.ticks,callback:v=>v+'kg'},
+        suggestedMin:pts.length?Math.floor(Math.min(...pts.map(p=>p.y),GOAL)-2):GOAL-10}}
     }
   });
 }
 
-function drawS(days) {
-  const d  = cut(D.filter(x=>x.steps!=null), days);
-  const pts = d.map(x=>({x:toDate(x.date), y:Math.round(x.steps)}));
-  if (C.s) C.s.destroy();
-  C.s = new Chart(document.getElementById('sc'), {
+function drawS(days){
+  const d=cut(D.filter(x=>x.steps!=null),days);
+  const pts=d.map(x=>({x:toDate(x.date),y:Math.round(x.steps)}));
+  if(C.s)C.s.destroy();
+  C.s=new Chart(document.getElementById('sc'),{
     type:'bar',
-    data:{ datasets:[{ label:'歩数', data:pts,
-      backgroundColor:pts.map(p=>p.y>=8000?'rgba(52,199,89,.85)':p.y>=5000?'rgba(255,149,0,.85)':'rgba(255,59,48,.7)'),
-      borderRadius:3, barThickness:pts.length>90?2:pts.length>45?4:8 }]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toLocaleString()} 歩`}} },
-      scales:{ x:xAxis, y:{...yAxis, ticks:{...yAxis.ticks,callback:v=>v>=10000?(v/1000)+'k':v}} }
+    data:{datasets:[{label:'歩数',data:pts,
+      backgroundColor:'rgba(255,214,10,0.85)',
+      borderRadius:3,barThickness:pts.length>90?2:pts.length>45?4:8}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toLocaleString()} 歩`}}},
+      scales:{x:xAxis,y:{...yAxis,ticks:{...yAxis.ticks,callback:v=>v>=10000?(v/1000)+'k':v}}}
     }
   });
 }
 
-function drawB(days) {
-  const d  = cut(D.filter(x=>x.bp_sys_max!=null), days);
-  const th = d.length>60?2:d.length>30?5:8;
-  if (C.b) C.b.destroy();
-  C.b = new Chart(document.getElementById('bc'), {
+function drawB(days){
+  const d=cut(D.filter(x=>x.bp_sys_max!=null),days);
+  const th=d.length>60?2:d.length>30?5:8;
+  if(C.b)C.b.destroy();
+  C.b=new Chart(document.getElementById('bc'),{
     type:'bar',
-    data:{ datasets:[
-      { label:'最高血圧', data:d.map(x=>({x:toDate(x.date),y:[x.bp_sys_min??x.bp_sys_max,x.bp_sys_max]})),
-        backgroundColor:'rgba(255,59,48,.75)', borderColor:'#FF3B30', borderWidth:1, borderRadius:2, barThickness:th },
-      { label:'最低血圧', data:d.map(x=>({x:toDate(x.date),y:[x.bp_dia_min??x.bp_dia_max,x.bp_dia_max]})),
-        backgroundColor:'rgba(255,59,48,.4)', borderColor:'#FF3B30', borderWidth:1, borderRadius:2, barThickness:th }
+    data:{datasets:[
+      {label:'最高血圧',data:d.map(x=>({x:toDate(x.date),y:[x.bp_sys_min??x.bp_sys_max,x.bp_sys_max]})),
+       backgroundColor:'rgba(255,149,0,0.85)',borderColor:'#FF9500',borderWidth:1,borderRadius:2,barThickness:th},
+      {label:'最低血圧',data:d.map(x=>({x:toDate(x.date),y:[x.bp_dia_min??x.bp_dia_max,x.bp_dia_max]})),
+       backgroundColor:'rgba(255,149,0,0.45)',borderColor:'#FF9500',borderWidth:1,borderRadius:2,barThickness:th}
     ]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:true, labels:{boxWidth:10,font:{size:11},padding:12}},
-        tooltip:{callbacks:{label:ctx=>{ const[mn,mx]=ctx.raw.y; return ` ${ctx.dataset.label}: ${mn===mx?mx:mn+'–'+mx} mmHg`;}}} },
-      scales:{ x:xAxis, y:{...yAxis, suggestedMin:60, suggestedMax:180} }
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true,labels:{boxWidth:10,font:{size:11},padding:12}},
+        tooltip:{callbacks:{label:ctx=>{const[mn,mx]=ctx.raw.y;return ` ${ctx.dataset.label}: ${mn===mx?mx:mn+'–'+mx} mmHg`;}}}
+      },
+      scales:{x:xAxis,y:{...yAxis,suggestedMin:60,suggestedMax:180}}
     }
   });
 }
 
-function drawF(days) {
-  const d  = cut(D.filter(x=>x.body_fat!=null), days);
-  if (!d.length) return;
-  const pts = d.map(x=>({x:toDate(x.date), y:+x.body_fat}));
-  if (C.f) C.f.destroy();
-  C.f = new Chart(document.getElementById('fc'), {
+function drawF(days){
+  const d=cut(D.filter(x=>x.body_fat!=null),days);
+  if(!d.length)return;
+  const pts=d.map(x=>({x:toDate(x.date),y:+x.body_fat}));
+  if(C.f)C.f.destroy();
+  C.f=new Chart(document.getElementById('fc'),{
     type:'line',
-    data:{ datasets:[{ label:'体脂肪率', data:pts, borderColor:'#FF2D55',
-      backgroundColor:'rgba(255,45,85,0.06)', borderWidth:2,
-      pointRadius:pts.length>60?0:4, pointBackgroundColor:'#FF2D55',
-      pointBorderColor:'#fff', pointBorderWidth:2, tension:0.3, fill:true }]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toFixed(1)}%`}} },
-      scales:{ x:xAxis, y:{...yAxis, ticks:{...yAxis.ticks,callback:v=>v+'%'}} }
+    data:{datasets:[{label:'体脂肪率',data:pts,borderColor:'#AF52DE',
+      backgroundColor:'rgba(175,82,222,0.08)',borderWidth:2,
+      pointRadius:pts.length>60?0:4,pointBackgroundColor:'#AF52DE',
+      pointBorderColor:'#fff',pointBorderWidth:2,tension:0.3,fill:true}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toFixed(1)}%`}}},
+      scales:{x:xAxis,y:{...yAxis,ticks:{...yAxis.ticks,callback:v=>v+'%'}}}
     }
   });
 }
 
-function renderTable() {
-  const wA = D.filter(d=>d.weight!=null);
-  document.getElementById('tbody').innerHTML = [...D].reverse().slice(0,50).map(r => {
-    const wi = wA.findIndex(d=>d.date===r.date);
-    let dh = '<td style="color:var(--t2)">—</td>';
-    if (r.weight!=null && wi>0) {
-      const d = (+r.weight - +wA[wi-1].weight).toFixed(1);
-      const cl = +d<0?'c-g':+d>0?'c-r':'c-n';
-      dh = `<td class="fw ${cl}">${+d>0?'+':''}${d} kg</td>`;
+function renderTable(){
+  const wA=D.filter(d=>d.weight!=null);
+  document.getElementById('tbody').innerHTML=[...D].reverse().slice(0,50).map(r=>{
+    const wi=wA.findIndex(d=>d.date===r.date);
+    let dh='<td class="dim">—</td>';
+    if(r.weight!=null&&wi>0){
+      const d=(+r.weight-+wA[wi-1].weight).toFixed(1);
+      dh=`<td class="fw">${+d>0?'+':''}${d} kg</td>`;
     }
-    const bSys = r.bp_sys_max!=null ? (r.bp_sys_min===r.bp_sys_max?`${r.bp_sys_max}`:`${r.bp_sys_min}–${r.bp_sys_max}`) : '—';
-    const bDia = r.bp_dia_max!=null ? (r.bp_dia_min===r.bp_dia_max?`${r.bp_dia_max}`:`${r.bp_dia_min}–${r.bp_dia_max}`) : '—';
+    const bSys=r.bp_sys_max!=null?(r.bp_sys_min===r.bp_sys_max?`${r.bp_sys_max}`:`${r.bp_sys_min}–${r.bp_sys_max}`):'—';
+    const bDia=r.bp_dia_max!=null?(r.bp_dia_min===r.bp_dia_max?`${r.bp_dia_max}`:`${r.bp_dia_min}–${r.bp_dia_max}`):'—';
+    const v=(val,fmt)=>val!=null?`<td class="fw">${fmt(val)}</td>`:'<td class="dim">—</td>';
     return `<tr>
       <td>${fmtD(r.date)}</td>
-      <td class="fw" style="color:${r.weight!=null?'var(--pink)':'var(--t2)'}">${r.weight!=null?(+r.weight).toFixed(1)+' kg':'—'}</td>
+      ${v(r.weight,x=>(+x).toFixed(1)+' kg')}
       ${dh}
-      <td class="fw" style="color:${r.steps!=null?'var(--orange)':'var(--t2)'}">${r.steps!=null?Math.round(r.steps).toLocaleString():'—'}</td>
-      <td class="fw" style="color:${r.bp_sys_max!=null?'var(--red)':'var(--t2)'}">${bSys}</td>
-      <td class="fw" style="color:${r.bp_dia_max!=null?'var(--red)':'var(--t2)'};opacity:.75">${bDia}</td>
-      <td class="fw" style="color:${r.body_fat!=null?'var(--pink)':'var(--t2)'}">${r.body_fat!=null?(+r.body_fat).toFixed(1)+'%':'—'}</td>
+      ${v(r.steps,x=>Math.round(x).toLocaleString())}
+      ${v(r.bp_sys_max,()=>bSys)}
+      ${v(r.bp_dia_max,()=>bDia)}
+      ${v(r.body_fat,x=>(+x).toFixed(1)+'%')}
     </tr>`;
   }).join('');
 }
